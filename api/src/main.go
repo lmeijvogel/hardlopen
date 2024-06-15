@@ -9,7 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const dbFile string = "db.sqlite3"
+const dbFile string = "../db.sqlite3"
 
 func main() {
 	router := gin.Default()
