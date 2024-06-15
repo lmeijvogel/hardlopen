@@ -3,13 +3,14 @@ import { Route, Run } from "../../model/types";
 import { Button, Link } from "./buttons";
 
 type Props = {
+    mode: "add" | "edit";
     run?: Run;
     routes: Route[];
     onSubmit: (run: Run) => void;
     onCancel: () => void;
 };
 
-export function EditRunDialog({ run, routes, onSubmit, onCancel }: Props) {
+export function EditRunDialog({ mode, run, routes, onSubmit, onCancel }: Props) {
     const [date, setDate] = useState<Date>(run?.date ?? new Date());
     const [comment, setComment] = useState(run?.comment ?? "");
     const [excuses, setExcuses] = useState(run?.excuses ?? "");
@@ -25,10 +26,6 @@ export function EditRunDialog({ run, routes, onSubmit, onCancel }: Props) {
 
     const onExcusesChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         setExcuses(event.target.value);
-    };
-
-    const onRouteChanged: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
-        setRoute(routes.find(r => r.id === parseInt(event.target.value)));
     };
 
     const onSubmitClicked: React.MouseEventHandler<HTMLButtonElement> = (event) => {
@@ -54,7 +51,7 @@ export function EditRunDialog({ run, routes, onSubmit, onCancel }: Props) {
     const dateString = date.toISOString().substring(0, 10);
 
     return <div>
-        <h1>Nieuw rondje</h1>
+        <h1>{mode === "add" ? "Nieuw rondje" : "Wijzig"}</h1>
         <form>
             <table>
                 <tbody>
@@ -64,7 +61,7 @@ export function EditRunDialog({ run, routes, onSubmit, onCancel }: Props) {
                     </tr>
                     <tr>
                         <td>Route</td>
-                        <td><select onChange={onRouteChanged}>{routes.map(route => <option key={route.id} value={route.id}>{route.name}</option>)}</select></td>
+                        <td><RouteSelector routes={routes} value={run?.route} onChange={setRoute} /></td>
                     </tr>
                     <tr>
                         <td>Commentaar</td>
@@ -83,4 +80,22 @@ export function EditRunDialog({ run, routes, onSubmit, onCancel }: Props) {
     </div >;
 }
 
+type RouteSelectorProps = {
+    value?: Route;
+    routes: Route[];
+    onChange: (route: Route) => void;
+};
 
+function RouteSelector({ routes, value, onChange }: RouteSelectorProps) {
+    const onRouteChanged: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
+        const route = routes.find(r => r.id === parseInt(event.target.value));
+
+        if (!route) return;
+
+        onChange(route);
+    };
+
+    const routeOptions = [<option key={"no_route"} value={undefined}>---</option>, ...routes.map(route => <option key={route.id} value={route.id}>{route.name}</option>)];
+
+    return <select defaultValue={value?.id} onChange={onRouteChanged}>{routeOptions}</select>;
+}

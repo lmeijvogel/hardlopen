@@ -71,6 +71,25 @@ export function RunsList() {
             body: JSON.stringify(runToJson(run))
         }).then(() => {
             setRuns(oldRuns => oldRuns === "not_loaded" ? [run] : [run, ...oldRuns]);
+            hideDialog();
+        });
+    };
+
+    const submitExistingRun = (run: Run) => {
+        fetch("/api/runs/update", {
+            method: "POST",
+            body: JSON.stringify(runToJson(run))
+        }).then(() => {
+            if (runs === "not_loaded") return;
+
+            const runIndex = runs.findIndex(r => r.id === run.id);
+            const newRuns = [...runs];
+
+            newRuns[runIndex] = run;
+
+            setRuns(newRuns);
+
+            hideDialog();
         });
     };
 
@@ -85,9 +104,9 @@ export function RunsList() {
 
     switch (currentDialog.type) {
         case "addRun":
-            return <EditRunDialog routes={routes} onSubmit={submitNewRun} onCancel={hideDialog} />
+            return <EditRunDialog mode="add" routes={routes} onSubmit={submitNewRun} onCancel={hideDialog} />
         case "editRun":
-            return <EditRunDialog run={currentDialog.run} routes={routes} onSubmit={submitNewRun} onCancel={hideDialog} />
+            return <EditRunDialog mode="edit" run={currentDialog.run} routes={routes} onSubmit={submitExistingRun} onCancel={hideDialog} />
         default:
             return null;
     }
