@@ -1,10 +1,12 @@
 import { format } from "date-fns";
 import { Run } from "../../model/types";
 import styled from "styled-components";
-import { Fragment } from "react";
+import { Fragment, useCallback } from "react";
+import { observer } from "mobx-react-lite";
+import { RunsStore } from "../../model/stores/RunsStore";
 
 type Props = {
-    runs: Run[];
+    runsStore: RunsStore;
     onDeleteClick: (run: Run) => void;
     onRunClick: (run: Run) => void;
 };
@@ -19,37 +21,45 @@ const weekdays = [
     "Zaterdag"
 ];
 
-export function RunsTable({ runs, onDeleteClick, onRunClick }: Props) {
-    const runsPerYear: { group: number, elements: Run[] }[] = groupBy(runs, run => run.date.getFullYear());
-
-    const sortedRunsPerYear = [...runsPerYear].sort((a, b) => b.group - a.group);
-
+export const RunsTable = observer(({ runsStore, onDeleteClick, onRunClick }: Props) => {
     return <Table>
         <tbody>
-            {sortedRunsPerYear.map(({ group, elements }) => {
-                const sortedRuns = [...elements.sort((a, b) => b.date.getTime() - a.date.getTime())];
-
+            {runsStore.sortedRunsPerYear.map(({ group, runs }) => {
                 return <Fragment key={group}>
                     <tr><Header colSpan={5}>{group}</Header></tr>
-                    {sortedRuns.map(run => {
-                        const onDateClick = () => onRunClick(run);
-                        const onXClick = () => onDeleteClick(run);
-
-                        const commentColumn = [run.comment, run.excuses].filter(el => el !== "").join(". ");
-                        const distance = createDistanceString(run);
-
-                        return <Row key={run.id}>
-                            <Col><span onClick={onDateClick}>{weekdays[run.date.getDay()]} {format(run.date, "dd-MM")}</span></Col>
-                            <Col alignText={"numeric"}>{distance}</Col>
-                            <Col>{run.route?.name}</Col>
-                            <Col>{commentColumn}</Col>
-                            <Col><button onClick={onXClick}>x</button></Col>
-                        </Row>;
-                    })}
+                    {runs.map(run => <RunRow key={run.id} run={run} onEdit={onRunClick} onDelete={onDeleteClick} />)}
                 </Fragment>
             })}
         </tbody>
     </Table>;
+});
+
+type RunRowProps = {
+    run: Run;
+    onEdit: (run: Run) => void;
+    onDelete: (run: Run) => void;
+};
+
+const RunRow = observer(({ run, onEdit, onDelete }: RunRowProps) => {
+    const onDateClick = useCallback(() => onEdit(run), [run, onEdit]);
+    const onXClick = useCallback(() => onDelete(run), [run, onDelete]);
+
+    const commentColumn = [run.comment, run.excuses].filter(el => el !== "").join(". ");
+    const distance = createDistanceString(run);
+
+    return <Row key={run.id}>
+        <Col><ErrorIcon error={run.error} /><span onClick={onDateClick}>{weekdays[run.date.getDay()]} {format(run.date, "dd-MM")}</span></Col>
+        <Col alignText={"numeric"}>{distance}</Col>
+        <Col>{run.route?.name}</Col>
+        <Col>{commentColumn}</Col>
+        <Col><button onClick={onXClick}>x</button></Col>
+    </Row>;
+});
+
+const ErrorIcon = ({ error }: { error: string | undefined }) => {
+    if (!error) return null;
+
+    return <span title={error}>!!</span>;
 }
 
 function createDistanceString(run: Run): string {
@@ -85,22 +95,3 @@ const Col = styled.td<{ alignText?: "numeric" }>`
                     text-align: ${props => props.alignText === "numeric" ? "." : "left"};
                     padding: 2px 5px;
                     `;
-
-function groupBy<T, U>(elements: T[], grouper: (element: T) => U): { group: U, elements: T[] }[] {
-    const result: { group: U, elements: T[] }[] = [];
-
-    for (const element of elements) {
-        const groupValue = grouper(element);
-
-        let group = result.find(r => r.group === groupValue);
-
-        if (!group) {
-            group = { group: groupValue, elements: [] };
-            result.push(group);
-        }
-
-        group.elements.push(element);
-    }
-
-    return result;
-}

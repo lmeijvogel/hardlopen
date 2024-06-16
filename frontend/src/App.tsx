@@ -1,13 +1,16 @@
 import styled from 'styled-components';
 import './App.css'
 import { RunsList } from './components/RunsList';
+import { RunsStore } from './model/stores/RunsStore';
 
 function App() {
+    const runsStore = new RunsStore();
+    runsStore.fetchRuns();
     return (
         <>
             <h1>Hardlopen</h1>
             <Card>
-                <RunsList />
+                <RunsList runsStore={runsStore} />
             </Card>
         </>
     )

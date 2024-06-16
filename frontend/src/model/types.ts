@@ -12,6 +12,7 @@ export type RunJson = RunBase & {
 export type Run = RunBase & {
     route?: Route;
     date: Date;
+    error?: string;
 };
 
 export type Route = {

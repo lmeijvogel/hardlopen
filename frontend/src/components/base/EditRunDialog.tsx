@@ -6,7 +6,7 @@ type Props = {
     mode: "add" | "edit";
     run?: Run;
     routes: Route[];
-    onSubmit: (run: Run) => void;
+    onSubmit: (existingRun: Run | undefined, newRun: Run) => void;
     onCancel: () => void;
 };
 
@@ -33,7 +33,7 @@ export function EditRunDialog({ mode, run, routes, onSubmit, onCancel }: Props) 
 
         if (!route) return;
 
-        onSubmit({
+        onSubmit(run, {
             id: run?.id ?? 0,
             date,
             route,
