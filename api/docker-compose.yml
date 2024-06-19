@@ -4,7 +4,8 @@ services:
   hardlopen-api:
     build: .
     ports:
-      - 3123:3123
+      - 3124:3123
     volumes:
       - ./db.sqlite3:/go/db.sqlite3:rw
+      - ./.env:/go/.env:ro
     restart: unless-stopped

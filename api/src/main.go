@@ -4,14 +4,25 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const dbFile string = "../db.sqlite3"
+var dbFile string
 
 func main() {
+	err := godotenv.Load("../.env")
+
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	dbFile = os.Getenv("DATABASE_FILE")
+
 	router := gin.Default()
 	router.ForwardedByClientIP = true
 	router.SetTrustedProxies([]string{"127.0.0.1"})
