@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Route, Run } from "../../model/types";
+import { Route, Run, RunData } from "../../model/types";
 import { Button, Link } from "./buttons";
 
 type Props = {
     mode: "add" | "edit";
     run?: Run;
     routes: Route[];
-    onSubmit: (existingRun: Run | undefined, newRun: Run) => void;
+    onSubmit: (newRun: RunData) => void;
     onCancel: () => void;
 };
 
@@ -33,7 +33,7 @@ export function EditRunDialog({ mode, run, routes, onSubmit, onCancel }: Props) 
 
         if (!route) return;
 
-        onSubmit(run, {
+        onSubmit({
             id: run?.id ?? 0,
             date,
             route,

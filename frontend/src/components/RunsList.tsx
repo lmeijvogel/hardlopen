@@ -2,13 +2,13 @@ import { useCallback, useState } from "react";
 import { observer } from "mobx-react-lite";
 
 import { Link } from "./base/buttons";
-import { Run } from "../model/types";
+import { Run, RunData } from "../model/types";
 import { RunsTable } from "./base/RunsTable";
 import { EditRunDialog } from "./base/EditRunDialog";
 import { RunsStore } from "../model/stores/RunsStore";
 import { runInAction } from "mobx";
 
-type Dialog = { type: "addRun" } | { type: "addRoute" } | { type: "editRun"; run: Run };
+type Dialog = ({ type: "addRun" } | { type: "addRoute" } | { type: "editRun"; run: Run }) & { error?: string };
 
 type Props = {
     runsStore: RunsStore;
@@ -39,15 +39,23 @@ export const RunsList = observer(({ runsStore }: Props) => {
         [runsStore]
     );
 
-    const submitNewRun = async (run: Run, newData: Run) => {
-        await runsStore.addRun(newData, (error) => (run.error = error));
+    const submitNewRun = async (newData: RunData) => {
+        if (currentDialog?.type !== "addRun") {
+            throw new Error("Can't submit new Run without dialog");
+        }
 
-        if (!run.error) hideDialog();
+        await runsStore.addRun(newData, (error) => (currentDialog.error = error));
+
+        if (!currentDialog.error) hideDialog();
     };
 
-    const submitExistingRun = async (run: Run, newData: Run) => {
-        await runsStore.updateRun(newData, (error) => runInAction(() => {
-            run.error = error;
+    const submitExistingRun = async (newData: RunData) => {
+        if (currentDialog?.type !== "editRun") {
+            throw new Error("Can't submit existing Run data without dialog");
+        }
+
+        await runsStore.updateRun(currentDialog.run, newData, (error) => runInAction(() => {
+            currentDialog.error = error;
             console.log("ERROR: ", error);
         }));
 

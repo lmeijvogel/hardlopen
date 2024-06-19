@@ -58,7 +58,7 @@ func main() {
 			return
 		}
 
-		c.String(200, "Stored")
+		c.IndentedJSON(http.StatusOK, run)
 	})
 
 	router.POST("/api/runs/delete", func(c *gin.Context) {
