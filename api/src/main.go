@@ -27,20 +27,10 @@ func main() {
 	router.ForwardedByClientIP = true
 	router.SetTrustedProxies([]string{"127.0.0.1"})
 
+	// Runs
+
 	router.GET("/api/runs", func(c *gin.Context) {
 		runs, err := getRuns()
-
-		if err != nil {
-			log.Fatal(err)
-			c.AbortWithError(500, err)
-			return
-		}
-
-		c.IndentedJSON(http.StatusOK, runs)
-	})
-
-	router.GET("/api/routes", func(c *gin.Context) {
-		runs, err := getRoutes()
 
 		if err != nil {
 			log.Fatal(err)
@@ -92,6 +82,19 @@ func main() {
 		}
 
 		c.String(200, "Deleted")
+	})
+
+	// Routes
+	router.GET("/api/routes", func(c *gin.Context) {
+		runs, err := getRoutes()
+
+		if err != nil {
+			log.Fatal(err)
+			c.AbortWithError(500, err)
+			return
+		}
+
+		c.IndentedJSON(http.StatusOK, runs)
 	})
 
 	router.Run(":3123")
