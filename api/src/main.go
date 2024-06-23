@@ -101,6 +101,18 @@ func main() {
 		c.IndentedJSON(http.StatusOK, route)
 	})
 
+	router.GET("/api/backup", func(c *gin.Context) {
+		data, err := os.ReadFile(dbFile)
+
+		if err != nil {
+			c.AbortWithError(404, err)
+		}
+
+		c.Header("Content-Type", "application/octet-stream")
+
+		_, _ = c.Writer.Write(data)
+	})
+
 	router.Run(":3123")
 }
 
