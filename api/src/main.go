@@ -106,7 +106,7 @@ func StoreRun(run Run) error {
 	db, err := sql.Open("sqlite3", dbFile)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		return err
 	}
 
