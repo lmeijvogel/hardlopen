@@ -41,26 +41,8 @@ func main() {
 		c.IndentedJSON(http.StatusOK, runs)
 	})
 
-	router.POST("/api/runs/add", func(c *gin.Context) {
-		var run Run
-
-		err := c.BindJSON(&run)
-		if err != nil {
-			log.Fatal(err)
-			c.AbortWithError(400, err)
-			return
-		}
-
-		err = StoreRun(run)
-
-		if err != nil {
-			log.Fatal(err)
-			c.AbortWithError(400, err)
-			return
-		}
-
-		c.IndentedJSON(http.StatusOK, run)
-	})
+	router.POST("/api/runs/add", HandleAddOrUpdateRequest)
+	router.POST("/api/runs/update", HandleAddOrUpdateRequest)
 
 	router.POST("/api/runs/delete", func(c *gin.Context) {
 		var idContainer IdContainer
@@ -98,6 +80,26 @@ func main() {
 	})
 
 	router.Run(":3123")
+}
+
+func HandleAddOrUpdateRequest(c *gin.Context) {
+	var run Run
+
+	err := c.BindJSON(&run)
+	if err != nil {
+		c.AbortWithError(400, err)
+		return
+	}
+
+	err = StoreRun(run)
+
+	if err != nil {
+		log.Fatal(err)
+		c.AbortWithError(400, err)
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, run)
 }
 
 func StoreRun(run Run) error {
