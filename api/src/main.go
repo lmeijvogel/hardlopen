@@ -79,6 +79,28 @@ func main() {
 		c.IndentedJSON(http.StatusOK, runs)
 	})
 
+	router.POST("/api/routes/add", func(c *gin.Context) {
+		var route Route
+
+		err := c.BindJSON(&route)
+
+		if err != nil {
+			log.Print(err)
+			c.AbortWithError(400, err)
+			return
+		}
+
+		err = StoreRoute(route)
+
+		if err != nil {
+			log.Print(err)
+			c.AbortWithError(400, err)
+			return
+		}
+
+		c.IndentedJSON(http.StatusOK, route)
+	})
+
 	router.Run(":3123")
 }
 
@@ -147,6 +169,54 @@ func StoreRun(run Run) error {
 	err = tx.Commit()
 
 	return err
+}
+
+func StoreRoute(route Route) error {
+	db, err := sql.Open("sqlite3", dbFile)
+
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+
+	var stmt *sql.Stmt
+
+	tx, err := db.Begin()
+
+	if err != nil {
+		return err
+	}
+
+	if route.ID == 0 {
+		stmt, err = tx.Prepare("insert into routes(name, distance) values(?, ?)")
+
+		if err != nil {
+			return err
+		}
+
+		defer stmt.Close()
+
+		_, err = stmt.Exec(route.Name, route.Distance)
+	} else {
+		stmt, err = tx.Prepare("update routes set name=?, distance=? where rowid=?")
+
+		if err != nil {
+			return err
+		}
+
+		defer stmt.Close()
+
+		_, err = stmt.Exec(route.Name, route.Distance, route.ID)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+
+	return err
+
 }
 
 func DeleteRun(id int) error {
